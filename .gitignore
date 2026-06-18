@@ -1,0 +1,25 @@
+# Secret files
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Jupyter / Colab
+.ipynb_checkpoints/
+
+# Outputs
+outputs/
+logs/
+data/raw/
+data/cache/
+
+# OS/editor
+.DS_Store
+.vscode/
