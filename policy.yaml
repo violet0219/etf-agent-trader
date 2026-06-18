@@ -55,3 +55,14 @@ rebalance:
 risk:
   min_cash_weight: 0.05
   max_single_asset_weight: 0.35
+
+signals:
+  momentum_lookback_months: 6
+  volatility_lookback_months: 3
+  momentum_weight: 1.0
+  volatility_weight: 0.5
+  zscore_clip: 2.0
+
+allocation:
+  method: softmax
+  softmax_temperature: 1.25
