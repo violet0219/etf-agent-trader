@@ -83,6 +83,13 @@ def download_adjusted_close(
 
     prices = prices.sort_index()
     prices = prices.dropna(how="all")
+    
+    # Reorder columns according to policy.yaml order.
+    asset_order = list(ticker_map.keys())
+    prices = prices.reindex(columns=asset_order)
+
+    # Remove leftover column name from yfinance output.
+    prices.columns.name = None
 
     return prices
 
