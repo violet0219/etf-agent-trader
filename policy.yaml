@@ -1,8 +1,57 @@
 project:
   name: etf-agent-trader
+  version: 0.1.0
+  base_currency: KRW
 
 mode:
   trading_mode: read_only
 
 broker:
   name: toss
+  allow_live_order: false
+
+data:
+  price_source: yfinance
+  start_date: "2015-01-01"
+  end_date: null
+
+universe:
+  assets:
+    - id: us_equity
+      name: 미국 주식 테스트 프록시
+      price_ticker: SPY
+      max_weight: 0.35
+
+    - id: korea_equity
+      name: 한국 주식 테스트 프록시
+      price_ticker: EWY
+      max_weight: 0.25
+
+    - id: short_bond
+      name: 단기채 테스트 프록시
+      price_ticker: SHY
+      max_weight: 0.40
+
+    - id: long_bond
+      name: 장기채 테스트 프록시
+      price_ticker: TLT
+      max_weight: 0.30
+
+    - id: gold
+      name: 금 테스트 프록시
+      price_ticker: GLD
+      max_weight: 0.20
+
+    - id: dollar
+      name: 달러 테스트 프록시
+      price_ticker: UUP
+      max_weight: 0.30
+
+rebalance:
+  frequency: monthly
+  min_trade_weight_change: 0.03
+  max_turnover_per_rebalance: 0.30
+
+risk:
+  min_cash_weight: 0.05
+  max_single_asset_weight: 0.35
