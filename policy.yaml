@@ -1,0 +1,8 @@
+project:
+  name: etf-agent-trader
+
+mode:
+  trading_mode: read_only
+
+broker:
+  name: toss
