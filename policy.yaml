@@ -17,35 +17,41 @@ data:
 
 universe:
   assets:
-    - id: us_equity
-      name: 미국 주식 테스트 프록시
+    - id: growth_equity
+      name: 성장/위험 주식
       price_ticker: SPY
-      max_weight: 0.35
+      base_weight: 0.35
+      max_weight: 0.45
 
-    - id: korea_equity
-      name: 한국 주식 테스트 프록시
-      price_ticker: EWY
+    - id: defensive_equity
+      name: 방어적 주식
+      price_ticker: USMV
+      base_weight: 0.10
       max_weight: 0.25
 
     - id: short_bond
-      name: 단기채 테스트 프록시
+      name: 단기채
       price_ticker: SHY
-      max_weight: 0.40
+      base_weight: 0.20
+      max_weight: 0.35
 
     - id: long_bond
-      name: 장기채 테스트 프록시
+      name: 장기채
       price_ticker: TLT
-      max_weight: 0.30
+      base_weight: 0.15
+      max_weight: 0.25
 
     - id: gold
-      name: 금 테스트 프록시
+      name: 금
       price_ticker: GLD
+      base_weight: 0.10
       max_weight: 0.20
 
     - id: dollar
-      name: 달러 테스트 프록시
+      name: 달러성 자산
       price_ticker: UUP
-      max_weight: 0.30
+      base_weight: 0.05
+      max_weight: 0.15
 
 rebalance:
   frequency: monthly
