@@ -125,13 +125,7 @@ def apply_max_weight_caps(
 
     return final_weights
 
-
 def build_target_weights(scores: pd.DataFrame, policy: dict) -> pd.DataFrame:
-    """
-    Convert latest scores into target portfolio weights.
-
-    Output includes a separate cash row if risk.min_cash_weight > 0.
-    """
     if "score" not in scores.columns:
         raise ValueError("scores DataFrame must contain a 'score' column.")
 
@@ -145,24 +139,49 @@ def build_target_weights(scores: pd.DataFrame, policy: dict) -> pd.DataFrame:
         raise ValueError("Investable weight must be positive.")
 
     temperature = float(allocation_config.get("softmax_temperature", 1.0))
+    base_weight_blend = float(allocation_config.get("base_weight_blend", 0.0))
+    score_weight_blend = float(allocation_config.get("score_weight_blend", 1.0))
 
-    raw_asset_weights = softmax(
+    blend_sum = base_weight_blend + score_weight_blend
+
+    if blend_sum <= 0:
+        raise ValueError("base_weight_blend + score_weight_blend must be positive.")
+
+    asset_ids = list(scores.index)
+
+    score_raw_weights = softmax(
         scores["score"],
         temperature=temperature,
     )
 
-    asset_ids = list(scores.index)
+    score_weights = score_raw_weights / score_raw_weights.sum() * investable_weight
+
+    base_weights = get_base_weights(
+        policy=policy,
+        asset_ids=asset_ids,
+        total_weight=investable_weight,
+    )
+
+    pre_cap_weights = (
+        base_weight_blend * base_weights
+        + score_weight_blend * score_weights
+    ) / blend_sum
+
+    pre_cap_weights = pre_cap_weights / pre_cap_weights.sum() * investable_weight
+
     caps = get_asset_caps(policy, asset_ids)
 
     target_asset_weights = apply_max_weight_caps(
-        raw_weights=raw_asset_weights,
+        raw_weights=pre_cap_weights,
         caps=caps,
         total_weight=investable_weight,
     )
 
     target = pd.DataFrame(
         {
-            "raw_weight": raw_asset_weights,
+            "base_weight": base_weights,
+            "score_weight": score_weights,
+            "pre_cap_weight": pre_cap_weights,
             "max_weight": caps,
             "target_weight": target_asset_weights,
         }
@@ -172,7 +191,9 @@ def build_target_weights(scores: pd.DataFrame, policy: dict) -> pd.DataFrame:
 
     if min_cash_weight > 0:
         target.loc["cash"] = {
-            "raw_weight": 0.0,
+            "base_weight": 0.0,
+            "score_weight": 0.0,
+            "pre_cap_weight": 0.0,
             "max_weight": 1.0,
             "target_weight": min_cash_weight,
         }
@@ -180,3 +201,41 @@ def build_target_weights(scores: pd.DataFrame, policy: dict) -> pd.DataFrame:
     target["target_weight_pct"] = target["target_weight"] * 100
 
     return target
+
+def get_base_weights(
+    policy: dict,
+    asset_ids: list[str],
+    total_weight: float,
+) -> pd.Series:
+    assets = policy.get("universe", {}).get("assets", [])
+
+    base_weight_map = {}
+
+    for asset in assets:
+        asset_id = asset.get("id")
+        base_weight = asset.get("base_weight", 0.0)
+
+        if asset_id:
+            base_weight_map[asset_id] = float(base_weight)
+
+    base_weights = pd.Series(
+        {
+            asset_id: base_weight_map.get(asset_id, 0.0)
+            for asset_id in asset_ids
+        },
+        dtype=float,
+    )
+
+    if (base_weights < 0).any():
+        raise ValueError("base_weight values must be non-negative.")
+
+    if base_weights.sum() <= 0:
+        base_weights = pd.Series(
+            1.0 / len(asset_ids),
+            index=asset_ids,
+            dtype=float,
+        )
+    else:
+        base_weights = base_weights / base_weights.sum()
+
+    return base_weights * total_weight
