@@ -60,7 +60,7 @@ rebalance:
 
 risk:
   min_cash_weight: 0.05
-  max_single_asset_weight: 0.35
+  max_single_asset_weight: 0.45
 
 signals:
   momentum_lookback_months: 6
@@ -70,5 +70,7 @@ signals:
   zscore_clip: 2.0
 
 allocation:
-  method: softmax
-  softmax_temperature: 1.25
+  method: anchored_softmax
+  softmax_temperature: 1.50
+  base_weight_blend: 0.75
+  score_weight_blend: 0.25
